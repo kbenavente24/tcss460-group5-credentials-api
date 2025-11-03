@@ -75,6 +75,7 @@ Built on the **Auth² student template** (Node.js, Express, TypeScript, PostgreS
 
 ---
 ## 🗂️ Current Repository Structure
+```
 tcss460-group5-tv-api/
 ├── src/
 │   ├── app.ts                     # Express app configuration
@@ -103,6 +104,8 @@ tcss460-group5-tv-api/
 ├── docs-2.0/                      # Educational documentation
 ├── ai.prof/                       # AI assistant instructions
 └── .claude/                       # Claude Code commands
+```
+
 
 ## 🧩 Production Sprint Summary
 During the Production Sprint, Group 5 successfully integrated the Dataset Web API (TV Shows) and Credentials Web API (Auth²) into a cohesive, cloud-hosted back-end system.
