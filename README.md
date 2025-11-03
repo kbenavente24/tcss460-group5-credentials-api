@@ -1,340 +1,135 @@
-# TCSS-460-auth-squared Template
-
-**Identity and Access Management (IAM) API - Student Starter Template**
-_Authentication × Authorization = Auth²_
-
-## Overview
-
-This is the **student starter template** for the Auth² (Auth Squared) project - a comprehensive Identity and Access Management (IAM) API built with Node.js, Express, TypeScript, and PostgreSQL. This template provides the foundational structure and basic authentication features, while leaving key components for you to implement as part of your learning experience.
-
-**Course**: TCSS 460 - Software Engineering
-**Institution**: University of Washington Tacoma
-**Level**: Senior-level undergraduate computer science
-
-## What's Included
-
-This template provides:
-
-### ✅ Working Features
-- **Project Structure**: Complete TypeScript/Node.js/Express setup with path aliases
-- **Database Schema**: Full PostgreSQL schema with 4 tables (Account, Account_Credential, Email_Verification, Phone_Verification)
-- **Core Utilities**: Password hashing, JWT generation, email service, database connection
-- **JWT Middleware**: Token validation (`checkToken`) - fully functional
-- **Basic Controllers**: Authentication and verification controllers (without validation)
-- **Documentation Routes**: Serve educational markdown docs as HTML
-- **Test Infrastructure**: Jest + Supertest setup with example utility tests
-- **Development Tools**: TypeScript, ESLint, Prettier, nodemon, Docker Compose
-- **Educational Documentation**: Complete guides in `docs-2.0/` directory
-
-### 📝 Routes (Without Validation)
-**Public Routes** (Open):
-- `POST /auth/login` - User login
-- `POST /auth/register` - New user registration
-- `POST /auth/password/reset-request` - Request password reset
-- `POST /auth/password/reset` - Reset password with token
-- `GET /auth/verify/carriers` - List SMS carriers
-- `GET /auth/verify/email/confirm?token=xxx` - Verify email
-- `GET /jwt_test` - API health check
-- `GET /doc` - Documentation index
-- `GET /doc/:filename` - Rendered markdown docs
-
-**Protected Routes** (Closed - Requires JWT):
-- `POST /auth/user/password/change` - Change password
-- `POST /auth/verify/phone/send` - Send SMS verification
-- `POST /auth/verify/phone/verify` - Verify SMS code
-- `POST /auth/verify/email/send` - Send email verification
-
-## What You Need to Implement
-
-### 🎯 Your Learning Objectives
-
-#### 1. Input Validation (Primary Goal)
-**File**: `src/core/middleware/validation.ts`
-
-The validation middleware file has been gutted. You need to implement express-validator validation chains for:
-
-- `validateLogin` - Email and password validation
-- `validateRegister` - Complete user registration validation
-- `validatePasswordResetRequest` - Email validation
-- `validatePasswordReset` - Token and new password validation
-- `validatePasswordChange` - Old and new password validation
-- `validatePhoneSend` - Carrier validation
-- `validatePhoneVerify` - 6-digit code validation
-- `validateEmailToken` - Token parameter validation
-- `validateUserIdParam` - User ID validation
-- `passwordStrength` (optional) - Strong password requirements
-- `validatePagination` - Page and limit validation
-
-**Learning Focus**:
-- Request validation with express-validator
-- Security best practices (input sanitization)
-- Error handling and user feedback
-- Data type validation and constraints
-
-#### 2. Admin API (Advanced Feature)
-**Files to Create**:
-- `src/controllers/adminController.ts`
-- `src/core/middleware/adminAuth.ts`
-- `src/routes/admin/index.ts`
-
-**Endpoints to Implement**:
-- `POST /admin/users/create` - Create user with specified role
-- `GET /admin/users` - List users (with pagination, filters)
-- `GET /admin/users/search` - Search users
-- `GET /admin/users/:id` - Get user details
-- `PUT /admin/users/:id` - Update user
-- `DELETE /admin/users/:id` - Soft delete user
-- `PUT /admin/users/:id/password` - Admin password reset
-- `PUT /admin/users/:id/role` - Change user role
-- `GET /admin/users/stats/dashboard` - Dashboard statistics
-
-**Learning Focus**:
-- Role-based access control (RBAC)
-- Role hierarchy enforcement (users can only manage lower/equal roles)
-- Advanced SQL queries (filtering, pagination, search)
-- Admin middleware and authorization checks
-- Soft delete patterns
-
-## Role Hierarchy
-
-Your admin implementation should enforce this hierarchy:
-
-- **1 - User**: Basic access
-- **2 - Moderator**: User management capabilities
-- **3 - Admin**: Full user CRUD, can create roles ≤ 3
-- **4 - SuperAdmin**: System administration, can create roles ≤ 4
-- **5 - Owner**: Complete control
-
-**Rule**: Admins can only create/modify users with roles less than or equal to their own role.
-
-## Getting Started
-
-### Prerequisites
-
-```bash
-node --version  # v22.14.0 recommended
-npm --version   # v10+ recommended
-```
-
-### Installation
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Set up environment variables
-cp .env.example .env
-# Edit .env with your actual values:
-#   - Database credentials (username, password, database name)
-#   - JWT secret (generate a secure random string)
-#   - Email configuration (if using email verification)
-
-# 3. Start PostgreSQL with Docker
-docker-compose up -d
-
-# 4. Initialize database schema
-psql -U your_user -d your_database -f data/init.sql
-# OR if using Docker:
-# docker exec -i postgres-container psql -U tcss460 -d auth-squared < data/init.sql
-
-# 5. Run in development mode
-npm run dev
-```
-
-### Development Commands
-
-```bash
-npm run dev          # Start development server with hot reload
-npm run build        # Compile TypeScript to JavaScript
-npm start            # Run production build
-npm test             # Run all tests
-npm run test:watch   # Run tests in watch mode
-npm run lint         # Run ESLint
-npm run format       # Format code with Prettier
-```
-
-### Environment Variables
-
-Required in `.env`:
-```bash
-# Server
-PORT=8000
-NODE_ENV=development
-
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=auth_squared_db
-DB_USER=your_user
-DB_PASSWORD=your_password
-
-# JWT
-JWT_SECRET=your-secret-key-change-this-in-production
-JWT_EXPIRATION=14d
-
-# Email (for verification)
-EMAIL_SERVICE=gmail
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
-
-# Twilio (optional - for SMS)
-TWILIO_ACCOUNT_SID=your-sid
-TWILIO_AUTH_TOKEN=your-token
-TWILIO_PHONE_NUMBER=your-twilio-number
-```
-
-## Database Schema
-
-### Tables
-
-**Account** - Main user table
-```sql
-Account_ID, FirstName, LastName, Username (unique),
-Email (unique), Email_Verified, Phone (unique),
-Phone_Verified, Account_Role, Account_Status,
-Created_At, Updated_At
-```
-
-**Account_Credential** - Password storage
-```sql
-Credential_ID, Account_ID (FK), Salted_Hash, Salt
-```
-
-**Email_Verification** - Email verification tokens
-```sql
-Verification_ID, Account_ID (FK), Email,
-Verification_Token (unique), Token_Expires,
-Verified, Created_At
-```
-
-**Phone_Verification** - SMS verification codes
-```sql
-Verification_ID, Account_ID (FK), Phone,
-Verification_Code, Code_Expires, Attempts,
-Verified, Created_At
-```
-
-## API Documentation
-
-- **Swagger UI**: http://localhost:8000/api-docs
-- **Educational Docs**: http://localhost:8000/doc
-- **Postman Collection**: Available in `docs/postman-collection.json`
-
-## Testing
-
-The template includes example tests for utilities. You should add tests for your validation and admin implementations:
-
-```bash
-# Run all tests
-npm test
-
-# Run specific test file
-npm test -- validationUtils.test.ts
-
-# Generate coverage report
-npm test -- --coverage
-```
-
-## TypeScript Path Aliases
-
-The project uses path aliases for clean imports:
-
-```typescript
-import { pool, sendSuccess, sendError } from '@utilities';
-import { checkToken, requireAdmin } from '@middleware';
-import { AuthController, AdminController } from '@controllers';
-import { IJwtRequest, UserRole, RoleName } from '@models';
-```
-
-**Available Aliases**:
-- `@core/*` → `src/core/*`
-- `@routes/*` → `src/routes/*`
-- `@controllers` → `src/controllers/index`
-- `@utilities` → `src/core/utilities/index`
-- `@middleware` → `src/core/middleware/index`
-- `@models` → `src/core/models/index`
-- `@db` → `src/core/utilities/database`
-- `@auth` → `src/core/utilities/credentialingUtils`
-
-## Security Features
-
-This template demonstrates important security practices:
-
-- **SHA256 password hashing** with unique salts per user
-- **Parameterized SQL queries** (SQL injection prevention)
-- **Timing-safe password comparison**
-- **JWT tokens** with configurable expiration
-- **Email verification** tokens (48-hour expiry)
-- **SMS verification** codes (15-minute expiry, attempt limiting)
-- **Role-based access control** (RBAC)
-
-## Educational Resources
-
-Check out the comprehensive guides in `docs-2.0/`:
-
-- Authentication Patterns
-- JWT Token Implementation
-- Password Hashing Best Practices
-- SQL Injection Prevention
-- Role-Based Access Control
-- Testing Strategies
-- And more!
-
-## Project Structure
-
-```
-template/
+# TCSS 460 – Group 5 Dataset Web API (TV Shows)
+
+This repository contains the Group 5 Web API project for the TCSS 460 Back-End Development course.
+It consists of two integrated components:
+
+1. **Dataset Web API (TV Shows)** – Manages TV show, actor, and related data.
+2. **Credentials Web API (Auth²)** – Provides user authentication and authorization.
+
+Both APIs are deployed, fully functional, documented, and tested with Postman.
+**🌐 Hosted Data Web API URL (Render):** [https://helloworld-api-su2v.onrender.com](https://helloworld-api-su2v.onrender.com)
+
+**📚 API Documentation:** [https://helloworld-api-su2v.onrender.com/api-docs](https://helloworld-api-su2v.onrender.com/api-docs)
+
+### Credentials (Auth²) API
+- **Base URL:** 
+- **Swagger Docs:**
+
+## 🧩 Functionality
+
+### 🎥 Dataset Web API (TV Shows)
+- CRUD operations for TV shows and actors  
+- Search/filter TV shows by genre, release year, or network  
+- Pagination and error-handling middleware  
+- Relational data linking actors to TV shows  
+- Hosted database (PostgreSQL on Render/Heroku)  
+- Integrated Swagger UI documentation  
+
+### 🔐 Credentials Web API (Auth²)
+Built on the **Auth² student template** (Node.js, Express, TypeScript, PostgreSQL)
+
+#### Implemented Features
+- User registration, login, password reset  
+- Email verification and token-based authentication  
+- Secure JWT-based session handling  
+- Input validation (express-validator)  
+- Protected routes with middleware  
+- Admin API routes for role management
+
+ ## 🚀 Production Sprint Contribution
+ **Group Members**
+
+- **Balkirat Singh** – During this sprint, I helped across multiple parts of the API by assisting with debugging and testing the POST, PUT, DELETE, and pagination features while helping make the error handling and API key protection more consistent. I also updated portions of the documentation when new routes were added and helped teammates set up and test their routes on both local and Render environments. On top of that, I started preparing for the next sprint requirements by researching how to add login and register functionality with JWTs, planning the user credentials table for PostgreSQL, and looking into how to host the database externally the way the instructor requires.
+- **Kobe Benavente** –  Implemented the POST endpoint for creating new TV shows with comprehensive validation including required field checks, data type validation for numeric fields, and
+  rating bounds enforcement (0-10). Developed the DELETE endpoint to remove TV shows by ID with pre-deletion existence verification and detailed error messages. Also coordinated with team
+  members to help integrate the new endpoints and update their local projects to reflect the latest API changes.
+- **MD Khan (Shanto)** - Helped implement and test the POST, PUT, and DELETE endpoints for managing TV show data, contributing to full CRUD functionality within the API. Worked on building the routes to handle show creation, updates, and deletion with consistent validation, error handling, and database integration.
+- **Pham Nguyen** - Implemented all validation functions in src/core/middleware/validation.ts using express-validator, including validateLogin, validateRegister, validatePasswordResetRequest, validatePasswordReset, and validatePasswordChange. Ensured that invalid input data triggers proper error messages, enhancing security and user feedback. Conducted extensive Postman testing to verify that all validation logic works as intended and that the API responds consistently to invalid requests.
+---
+
+## 💬 Production Sprint Meetings
+
+**Primary Communication Methods**
+
+- **Discord:** Used for group coordination, sprint planning, and real-time collaboration during Production Sprint.
+- **GitHub:** Used for version control, pull requests, code reviews, and tracking sprint progress.
+
+**Meeting Details**
+
+- **When/Where:** Weekly Discord voice meetings and continuous asynchronous collaboration via Discord text channels and GitHub throughout the Beta II Sprint period.
+
+### Topics Discussed
+- Data API route implementation and testing  
+- PostgreSQL connection and deployment  
+- Swagger documentation configuration  
+- Auth² validation and admin route setup  
+- Integration testing using Postman
+
+## 💬 Production Sprint Comments
+
+- **Deployment:** Encountered minor build timeout issues on Render; resolved by optimizing build steps.  
+- **Integration:** Integrated authentication tokens between two APIs successfully.  
+- **Testing:** Enhanced Postman coverage for all route combinations.  
+- **Learning:** Gained hands-on experience with route validation, JWT, and cloud deployment.  
+- **Next Steps:** Extend Dataset API with search and sorting enhancements.  
+
+---
+## 🗂️ Current Repository Structure
+tcss460-group5-tv-api/
 ├── src/
 │   ├── app.ts                     # Express app configuration
 │   ├── index.ts                   # Server entry point
 │   ├── routes/
 │   │   ├── open/                  # Public routes
 │   │   ├── closed/                # Protected routes
-│   │   └── admin/                 # ⚠️ TODO: Implement admin routes
+│   │   └── admin/                 # Admin routes (TODO)
 │   ├── controllers/
 │   │   ├── authController.ts      # Authentication logic
 │   │   ├── verificationController.ts
-│   │   └── adminController.ts     # ⚠️ TODO: Implement admin controller
+│   │   └── adminController.ts     # Admin controller (TODO)
 │   ├── core/
 │   │   ├── middleware/
-│   │   │   ├── jwt.ts            # ✅ JWT validation (working)
-│   │   │   ├── validation.ts     # ⚠️ TODO: Implement validation chains
-│   │   │   └── adminAuth.ts      # ⚠️ TODO: Implement admin middleware
-│   │   ├── utilities/            # ✅ All utilities working
-│   │   └── models/               # TypeScript interfaces
+│   │   │   ├── jwt.ts             # JWT validation
+│   │   │   ├── validation.ts      # Validation chains (TODO)
+│   │   │   └── adminAuth.ts       # Admin middleware (TODO)
+│   │   ├── utilities/             # Helper utilities
+│   │   └── models/                # TypeScript interfaces
 │   └── test/                      # Test setup
 ├── data/
 │   ├── init.sql                   # Database schema
-│   └── heroku.sql                # Heroku deployment schema
+│   └── heroku.sql                 # Heroku deployment schema
 ├── docs/
-│   └── swagger.yaml              # API documentation
-├── docs-2.0/                     # Educational documentation
-├── ai.prof/                      # AI assistant instructions
-└── .claude/                      # Claude Code commands
-```
+│   └── swagger.yaml               # API documentation
+├── docs-2.0/                      # Educational documentation
+├── ai.prof/                       # AI assistant instructions
+└── .claude/                       # Claude Code commands
 
-## Contributing
-
-This is a student learning template. Focus on:
-
-1. Understanding the existing code patterns
-2. Implementing validation following the examples
-3. Building the admin API with proper authorization
-4. Writing tests for your implementations
-5. Documenting your code clearly
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Support
-
-- **Documentation**: http://localhost:8000/doc (when running)
-- **API Docs**: http://localhost:8000/api-docs (Swagger UI)
-- **Course Resources**: Check Canvas for additional materials
-
----
-
-**Remember**: This is an educational project. Focus on learning the concepts of authentication, authorization, validation, and security best practices. The goal is understanding, not production optimization.
-
-Good luck! 🚀
+## 🧩 Production Sprint Summary
+During the Production Sprint, Group 5 successfully integrated the Dataset Web API (TV Shows) and Credentials Web API (Auth²) into a cohesive, cloud-hosted back-end system.
+This milestone marked the completion of full CRUD functionality, secure authentication, hosted documentation, and comprehensive testing across both APIs.
+## ✅ Key Achievements
+1. Full CRUD Functionality (Dataset API)
+Implemented POST, GET, PUT, and DELETE endpoints for TV shows and actors.
+Added filtering by year, genre, and network, plus pagination for efficient data retrieval.
+Ensured consistent error handling and validation across all routes.
+2. Authentication & Authorization (Credentials API)
+Implemented user registration, login, and JWT-based authentication for secure route access.
+Added email verification and password reset capabilities.
+Created a foundation for admin-level access control, with admin middleware placeholders prepared for future extension.
+3. Cloud Deployment & Database Integration
+Successfully deployed both APIs on cloud platforms (Render for Dataset API; Heroku/Render for Auth²).
+Configured and hosted the PostgreSQL databases externally, ensuring full functionality independent of local environments.
+4. API Documentation & Testing
+Updated and hosted Swagger UI documentation at the /api-docs route for both APIs.
+Created a comprehensive Postman collection located in /testing/Postman/postman.json, testing all routes, authentication flows, and error responses.
+5. Team Collaboration & Workflow
+Coordinated using Discord for sprint planning and GitHub for version control and code reviews.
+Conducted weekly sync meetings and asynchronous development throughout the sprint.
+## 🧠 Lessons Learned
+Improved understanding of Express.js architecture, JWT security, and PostgreSQL integration.
+Learned best practices for cloud deployment, documentation hosting, and API testing.
+Strengthened teamwork and sprint-based project management skills.
+## 🔜 Next Steps
+Complete the admin routes for role-based access control.
+Optimize query performance and response caching for large datasets.
+Add search and sorting enhancements to improve API usability.
